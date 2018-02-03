@@ -1,0 +1,19 @@
+{
+  "scripts": {
+    "fetch-price-history": "node --harmony bin/fetch.js --candle-size all",
+    "fetch-1-minute-price-history": "node --harmony bin/fetch.js --candle-size 1-minute",
+    "fetch-5-minute-price-history": "node --harmony bin/fetch.js --candle-size 5-minute",
+    "fetch-15-minute-price-history": "node --harmony bin/fetch.js --candle-size 15-minute",
+    "fetch-1-hour-price-history": "node --harmony bin/fetch.js --candle-size 1-hour",
+    "fetch-6-hour-price-history": "node --harmony bin/fetch.js --candle-size 6-hour",
+    "fetch-1-day-price-history": "node --harmony bin/fetch.js --candle-size 1-day"
+  },
+  "dependencies": {
+    "async": "^2.6.0",
+    "chalk": "^2.3.0",
+    "dotenv": "^5.0.0",
+    "gdax": "^0.5.1",
+    "moment": "^2.20.1",
+    "optimist": "^0.6.1"
+  }
+}
