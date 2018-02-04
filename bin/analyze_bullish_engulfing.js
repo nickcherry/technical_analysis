@@ -188,7 +188,7 @@ plotly.plot(chartData, chartOpts, (err, msg) => {
 
 const writeResults = (chartUrl) => {
   const analysis = {
-    title: `Analysis of Bullish Engulfing Candles During Bear Trend`,
+    title: `Analysis of Bullish Engulfing Candles During Short-Term Bear Trend`,
     product: product,
     candleSize,
     startTime: moment(startTime).format('MMM Do, YYYY'),
