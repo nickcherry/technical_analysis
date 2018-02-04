@@ -6,6 +6,7 @@ const argv = require('optimist').argv;
 const chalk = require('chalk');
 const execSync = require('child_process').execSync;
 const fs = require('fs');
+const { quantileSeq } = require('mathjs');
 const moment = require('moment');
 const { basename } = require('path');
 const { analysisDir, plotlyUsername, plotlyApiKey, priceHistoryDir, templateDir } = require('../settings');
@@ -78,7 +79,7 @@ if (!fs.existsSync(analysisDir)) {
 /* Analyze  */
 /******************************************************************************/
 
-const results = [];
+const unfilteredResults = [];
 
 for (let i = LOOKBEHIND_CANDLES; i < candles.length; i++) {
   const candle = candles[i];
@@ -115,13 +116,25 @@ for (let i = LOOKBEHIND_CANDLES; i < candles.length; i++) {
   }
   const pctPriceIncrease = lookaheadHigh / candle.high - 1;
 
-  results.push({
+  unfilteredResults.push({
     price: candle.close.toLocaleString('en-US', { style: 'currency', currency: 'USD' }),
     time: `${ moment.utc(candle.time * 1000).format('YYYY-MM-DD HH:mm') } UTC`,
     pctSizeIncrease,
     pctPriceIncrease,
   });
 }
+
+// Remove outliers, probably due to wonky API data (see BTC-USD hourly for 2017-04-15), flash crashes, etc.
+const [pctSizeIncrease25, pctSizeIncrease75] = quantileSeq(unfilteredResults.map((r) => r.pctSizeIncrease), [0.25, 0.75]);
+const pctSizeIncreaseIqr = (pctSizeIncrease75 - pctSizeIncrease25) * 1.5;
+const [pctPriceIncrease25, pctPriceIncrease75] = quantileSeq(unfilteredResults.map((r) => r.pctPriceIncrease), [0.25, 0.75]);
+const pctPriceIncreaseIqr = (pctPriceIncrease75 - pctPriceIncrease25) * 1.5;
+const results = unfilteredResults.filter((result) => {
+  return result.pctSizeIncrease > pctSizeIncrease25 - pctSizeIncreaseIqr &&
+    result.pctSizeIncrease < pctSizeIncrease75 + pctSizeIncreaseIqr &&
+    result.pctPriceIncrease > pctPriceIncrease25 - pctPriceIncreaseIqr &&
+    result.pctPriceIncrease < pctPriceIncrease75 + pctPriceIncreaseIqr;
+});
 
 
 /******************************************************************************/
