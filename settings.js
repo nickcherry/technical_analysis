@@ -18,17 +18,23 @@ const dotenvConfig = dotenv.config(); // Loads from .env by default
 
 const env = process.env;
 
-module.exports.priceHistoryDir = `${ __dirname }/price_history`;
 module.exports.analysisDir = `${ __dirname }/analysis`;
+module.exports.priceHistoryDir = `${ __dirname }/price_history`;
+module.exports.templateDir = `${ __dirname }/templates`;
 
+module.exports.plotlyUsername = env.PLOTLY_USERNAME;
+module.exports.plotlyApiKey = env.PLOTLY_API_KEY;
 
 /******************************************************************************/
 /* Validate Constants */
 /******************************************************************************/
 
 const errors = [
-  'priceHistoryDir',
   'analysisDir',
+  'plotlyUsername',
+  'plotlyApiKey',
+  'priceHistoryDir',
+  'templateDir',
 ].reduce((errors, key) => {
   if (module.exports[key] === undefined) {
     errors.push(`The ${ key } setting / environment variable cannot be blank.`);

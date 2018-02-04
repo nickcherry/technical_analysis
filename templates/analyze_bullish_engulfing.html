@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Analysis</title>
+    <link href="https://fonts.googleapis.com/css?family=Work+Sans:300,400,500" rel="stylesheet">
+    <style>
+      body {
+        font-family: 'Work Sans', sans-serif;
+        font-size: 16px;
+        font-weight: 300;
+        margin: 25px;
+      }
+
+      h1, h2, h3, h4, h5 {
+        font-weight: 300;
+        margin-bottom: 0;
+      }
+
+      h1 {
+        font-size: 24px;
+        font-weight: 500;
+      }
+
+      h2 {
+        font-size: 14px;
+        font-weight: 300;
+        margin-top: .25em;
+      }
+
+      iframe {
+        height: 500px;
+        overflow: hidden;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="wrapper">
+      <h1 id="title"></h1>
+      <h2>
+        <span id="product"></span>,
+        <span id="candle-size"></span> candles,
+        <span id="candle-size"></span> candles,
+        <span id="start-time"></span> through <span id="end-time"></span>,
+        <span id="lookbehind-candles"></span>-candle lookbehind,
+        <span id="lookahead-candles"></span>-candle lookahead
+      </h2>
+      <div class="chart-wrapper">
+        <div id="chart"></div>
+      </div>
+    </div>
+    <script>
+      var title = {title};
+      var product = {product};
+      var candleSize = {candleSize};
+      var startTime = {startTime};
+      var endTime = {endTime};
+      var lookbehindCandles = {lookbehindCandles};
+      var lookaheadCandles = {lookaheadCandles};
+      var chartUrl = {chartUrl};
+      var results = {results};
+
+      var chartHtml = '<iframe src="' + chartUrl + '.embed" frameborder="0"></iframe>';
+
+      document.getElementById('title').innerHTML = title;
+      document.getElementById('product').innerHTML = product;
+      document.getElementById('candle-size').innerHTML = candleSize;
+      document.getElementById('start-time').innerHTML = startTime;
+      document.getElementById('end-time').innerHTML = endTime;
+      document.getElementById('lookbehind-candles').innerHTML = lookbehindCandles;
+      document.getElementById('lookahead-candles').innerHTML = lookaheadCandles;
+      document.getElementById('chart').innerHTML = chartHtml;
+
+      console.log(results);
+    </script>
+  </body>
+</html>

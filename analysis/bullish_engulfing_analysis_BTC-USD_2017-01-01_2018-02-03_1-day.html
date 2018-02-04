@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Analysis</title>
+    <link href="https://fonts.googleapis.com/css?family=Work+Sans:300,400,500" rel="stylesheet">
+    <style>
+      body {
+        font-family: 'Work Sans', sans-serif;
+        font-size: 16px;
+        font-weight: 300;
+        margin: 25px;
+      }
+
+      h1, h2, h3, h4, h5 {
+        font-weight: 300;
+        margin-bottom: 0;
+      }
+
+      h1 {
+        font-size: 24px;
+        font-weight: 500;
+      }
+
+      h2 {
+        font-size: 14px;
+        font-weight: 300;
+        margin-top: .25em;
+      }
+
+      iframe {
+        height: 500px;
+        overflow: hidden;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="wrapper">
+      <h1 id="title"></h1>
+      <h2>
+        <span id="product"></span>,
+        <span id="candle-size"></span> candles,
+        <span id="candle-size"></span> candles,
+        <span id="start-time"></span> through <span id="end-time"></span>,
+        <span id="lookbehind-candles"></span>-candle lookbehind,
+        <span id="lookahead-candles"></span>-candle lookahead
+      </h2>
+      <div class="chart-wrapper">
+        <div id="chart"></div>
+      </div>
+    </div>
+    <script>
+      var title = "Analysis of Bullish Engulfing Candles During Bear Trend";
+      var product = "BTC-USD";
+      var candleSize = "1-day";
+      var startTime = "Jan 1st, 2017";
+      var endTime = "Feb 3rd, 2018";
+      var lookbehindCandles = 5;
+      var lookaheadCandles = 5;
+      var chartUrl = "https://plot.ly/~nickcherry/650";
+      var results = [{"price":"$2,575.00","time":"2017-06-27 00:00 UTC","pctSizeIncrease":0.44142512077294715,"pctPriceIncrease":0.011646601941747381},{"price":"$2,516.57","time":"2017-07-02 00:00 UTC","pctSizeIncrease":0.21745425825984577,"pctPriceIncrease":0.039017910636016895},{"price":"$2,233.63","time":"2017-07-17 00:00 UTC","pctSizeIncrease":0.2782587973627777,"pctPriceIncrease":0.07035283704587814},{"price":"$4,616.18","time":"2017-09-06 00:00 UTC","pctSizeIncrease":0.43716744913927874,"pctPriceIncrease":0},{"price":"$4,322.40","time":"2017-10-05 00:00 UTC","pctSizeIncrease":0.1546967257112175,"pctPriceIncrease":0.019886949704996493},{"price":"$6,535.87","time":"2017-11-13 00:00 UTC","pctSizeIncrease":0.12299872056433392,"pctPriceIncrease":0.07426900584795315},{"price":"$15,790.88","time":"2017-12-26 00:00 UTC","pctSizeIncrease":0.04563921381190128,"pctPriceIncrease":0.02124549837585432}];
+
+      var chartHtml = '<iframe src="' + chartUrl + '.embed" frameborder="0"></iframe>';
+
+      document.getElementById('title').innerHTML = title;
+      document.getElementById('product').innerHTML = product;
+      document.getElementById('candle-size').innerHTML = candleSize;
+      document.getElementById('start-time').innerHTML = startTime;
+      document.getElementById('end-time').innerHTML = endTime;
+      document.getElementById('lookbehind-candles').innerHTML = lookbehindCandles;
+      document.getElementById('lookahead-candles').innerHTML = lookaheadCandles;
+      document.getElementById('chart').innerHTML = chartHtml;
+
+      console.log(results);
+    </script>
+  </body>
+</html>
