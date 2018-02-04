@@ -124,7 +124,8 @@ eachSeries(configs, ({ granularity, name }, callback) => {
   console.log(chalk.white(`Fetching ${ name } ${ PRODUCT } candles from ${ START_TIME.format('YYYY-MM-DD') } to ${ END_TIME.format('YYYY-MM-DD') }...`));
   fetch(granularity, (err, candles) => {
     const path = `${ priceHistoryDir }/${ PRODUCT }_${ START_TIME.format('YYYY-MM-DD') }_${ END_TIME.format('YYYY-MM-DD') }_${ name }.json`;
-    fs.writeFileSync(path, JSON.stringify(candles));
+    const data = { product: PRODUCT, startTime: START_TIME, endTime: END_TIME, candles }
+    fs.writeFileSync(path, JSON.stringify(data));
     console.log(chalk.green('Data written to', path));
     callback();
   });
