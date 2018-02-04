@@ -24,4 +24,15 @@ yarn run fetch-1-day-price-history
 yarn run fetch-price-history
 ```
 
-The default product and start/end time can be configured in [./settings.js](./settings.js) or explicitly overridden with the `--product`, `--start-time`, and `--end-time` arguments. By default, price history data will be stored in the [./price_history](./price_history) directory.
+The product (e.g. USD-BTC) and start/end time can be overridden with the `--product`, `--start-time`, and `--end-time` arguments. By default, price history data will be stored in the [./price_history](./price_history) directory (configurable in [./settings.js](./settings.js).
+
+
+## Analyzing Historic Candle Data
+
+### Bullish Engulfing
+
+To analyze instances of bullish engulfing candles, run the `analyze-bullish-engulfing` script. It expects a `price-history-filename` argument, which is the name of a JSON file (generated using the `fetch` script) that lives within the [./price_history](./price_history) directory. For example:
+
+```shell
+yarn run analyze-bullish-engulfing --price-history-filename BTC-USD_2016-01-01_2018-02-03_1-day.json
+```

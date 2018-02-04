@@ -18,18 +18,17 @@ const dotenvConfig = dotenv.config(); // Loads from .env by default
 
 const env = process.env;
 
-module.exports.defaultProduct = 'BTC-USD';
 module.exports.priceHistoryDir = `${ __dirname }/price_history`;
-module.exports.defaultPriceHistoryStartDate = new Date(2016, 0, 1).getTime();
+module.exports.analysisDir = `${ __dirname }/analysis`;
+
 
 /******************************************************************************/
 /* Validate Constants */
 /******************************************************************************/
 
 const errors = [
-  'defaultProduct',
   'priceHistoryDir',
-  'defaultPriceHistoryStartDate',
+  'analysisDir',
 ].reduce((errors, key) => {
   if (module.exports[key] === undefined) {
     errors.push(`The ${ key } setting / environment variable cannot be blank.`);

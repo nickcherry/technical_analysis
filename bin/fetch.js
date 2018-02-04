@@ -123,9 +123,9 @@ switch(CANDLE_SIZE) {
 eachSeries(configs, ({ granularity, name }, callback) => {
   console.log(chalk.white(`Fetching ${ name } ${ PRODUCT } candles from ${ START_TIME.format('YYYY-MM-DD') } to ${ END_TIME.format('YYYY-MM-DD') }...`));
   fetch(granularity, (err, candles) => {
-    const filename = `${ priceHistoryDir }/${ PRODUCT }_${ START_TIME.format('YYYY-MM-DD') }_${ END_TIME.format('YYYY-MM-DD') }_${ name }.json`;
-    fs.writeFileSync(filename, JSON.stringify(candles));
-    console.log(chalk.green('Data written to', filename));
+    const path = `${ priceHistoryDir }/${ PRODUCT }_${ START_TIME.format('YYYY-MM-DD') }_${ END_TIME.format('YYYY-MM-DD') }_${ name }.json`;
+    fs.writeFileSync(path, JSON.stringify(candles));
+    console.log(chalk.green('Data written to', path));
     callback();
   });
 }, (err) => {
