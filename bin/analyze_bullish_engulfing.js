@@ -109,31 +109,38 @@ for (let i = LOOKBEHIND_CANDLES; i < candles.length; i++) {
   // Calculate the percentage increase between the current candle's height and that of the previous candle
   const pctSizeIncrease = candleHeight / maxRecentCandleHeight - 1;
 
-  // Calculate the maximum price following the current candle when looking ahead LOOKAHEAD_CANDLES candles
-  let lookaheadHigh = -Infinity;
+  // Calculate the maximum and minimum price following the current candle when looking ahead LOOKAHEAD_CANDLES candles
+  let lookaheadMaxPrice = -Infinity, lookaheadMinPrice = Infinity;
   for (let j = 1; j <= LOOKAHEAD_CANDLES && i + j < candles.length; j++) {
-    lookaheadHigh = Math.max(lookaheadHigh, candles[i + j].high);
+    lookaheadMaxPrice = Math.max(lookaheadMaxPrice, candles[i + j].high);
+    lookaheadMinPrice = Math.min(lookaheadMinPrice, candles[i + j].low);
   }
-  const pctPriceIncrease = lookaheadHigh / candle.high - 1;
+  const maxPctPriceChange = lookaheadMaxPrice / candle.high - 1;
+  const minPctPriceChange = lookaheadMinPrice / candle.high - 1;
 
   unfilteredResults.push({
     price: candle.close.toLocaleString('en-US', { style: 'currency', currency: 'USD' }),
     time: `${ moment.utc(candle.time * 1000).format('YYYY-MM-DD HH:mm') } UTC`,
     pctSizeIncrease,
-    pctPriceIncrease,
+    maxPctPriceChange,
+    minPctPriceChange,
   });
 }
 
 // Remove outliers, probably due to wonky API data (see BTC-USD hourly for 2017-04-15), flash crashes, etc.
 const [pctSizeIncrease25, pctSizeIncrease75] = quantileSeq(unfilteredResults.map((r) => r.pctSizeIncrease), [0.25, 0.75]);
 const pctSizeIncreaseIqr = (pctSizeIncrease75 - pctSizeIncrease25) * 1.5;
-const [pctPriceIncrease25, pctPriceIncrease75] = quantileSeq(unfilteredResults.map((r) => r.pctPriceIncrease), [0.25, 0.75]);
-const pctPriceIncreaseIqr = (pctPriceIncrease75 - pctPriceIncrease25) * 1.5;
+const [maxPctPriceChange25, maxPctPriceChange75] = quantileSeq(unfilteredResults.map((r) => r.maxPctPriceChange), [0.25, 0.75]);
+const maxPctPriceChangeIqr = (maxPctPriceChange75 - maxPctPriceChange25) * 1.5;
+const [minPctPriceChange25, minPctPriceChange75] = quantileSeq(unfilteredResults.map((r) => r.minPctPriceChange), [0.25, 0.75]);
+const minPctPriceChangeIqr = (minPctPriceChange75 - minPctPriceChange25) * 1.5;
 const results = unfilteredResults.filter((result) => {
   return result.pctSizeIncrease > pctSizeIncrease25 - pctSizeIncreaseIqr &&
     result.pctSizeIncrease < pctSizeIncrease75 + pctSizeIncreaseIqr &&
-    result.pctPriceIncrease > pctPriceIncrease25 - pctPriceIncreaseIqr &&
-    result.pctPriceIncrease < pctPriceIncrease75 + pctPriceIncreaseIqr;
+    result.maxPctPriceChange > maxPctPriceChange25 - maxPctPriceChangeIqr &&
+    result.maxPctPriceChange < maxPctPriceChange75 + maxPctPriceChangeIqr &&
+    result.minPctPriceChange > minPctPriceChange25 - minPctPriceChangeIqr &&
+    result.minPctPriceChange < minPctPriceChange75 + minPctPriceChangeIqr;
 });
 
 
@@ -142,14 +149,18 @@ const results = unfilteredResults.filter((result) => {
 /******************************************************************************/
 
 
-const { text, x, y } = results.reduce((accumulator, d) => {
+const { text, x, y1, y2 } = results.reduce((accumulator, d) => {
   accumulator.text.push(`${ d.price } @ ${ d.time }`),
   accumulator.x.push(d.pctSizeIncrease);
-  accumulator.y.push(d.pctPriceIncrease);
+  accumulator.y1.push(d.maxPctPriceChange);
+  accumulator.y2.push(d.minPctPriceChange);
   return accumulator;
-}, { text: [], x: [], y: [] });
+}, { text: [], x: [], y1: [], y2: [] });
 
-var chartData = [{ text, x, y, mode: 'markers', type: 'scatter', marker: { size: 6 } }];
+var chartData = [
+  { text, x, y: y1, name: 'Highest % Change', mode: 'markers', type: 'scatter', marker: { size: 6, color: '57b888' }, hoverinfo: 'text' },
+  { text, x, y: y2, name: 'Lowest % Change', mode: 'markers', type: 'scatter', marker: { size: 6, color: '#E94F5F' }, hoverinfo: 'text' }
+];
 
 var chartOpts = {
   filename: OUTPUT_FILENAME,
@@ -164,7 +175,7 @@ var chartOpts = {
       tickformat: ',.1%',
     },
     yaxis: {
-      title: `Highest % Price Change (Over Next ${ LOOKAHEAD_CANDLES } Candles)`,
+      title: `% Price Change (Over Next ${ LOOKAHEAD_CANDLES } Candles)`,
       tickangle: -15,
       titlefont: { size: 14 },
       tickfont: { size: 10 },
