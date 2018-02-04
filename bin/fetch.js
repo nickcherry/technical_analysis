@@ -16,7 +16,7 @@ const { priceHistoryDir } = require('../settings');
 /******************************************************************************/
 
 const PRODUCT = argv.product || 'BTC-USD';
-const START_TIME = Object.freeze(moment(argv['start-time'] || new Date(2016, 0, 1).getTime()));
+const START_TIME = Object.freeze(moment(argv['start-time'] || new Date(2017, 0, 1).getTime()));
 const END_TIME = Object.freeze(moment(argv['end-time']));
 const CANDLE_SIZE = argv['candle-size'];
 
@@ -124,7 +124,7 @@ eachSeries(configs, ({ granularity, name }, callback) => {
   console.log(chalk.white(`Fetching ${ name } ${ PRODUCT } candles from ${ START_TIME.format('YYYY-MM-DD') } to ${ END_TIME.format('YYYY-MM-DD') }...`));
   fetch(granularity, (err, candles) => {
     const path = `${ priceHistoryDir }/${ PRODUCT }_${ START_TIME.format('YYYY-MM-DD') }_${ END_TIME.format('YYYY-MM-DD') }_${ name }.json`;
-    const data = { product: PRODUCT, startTime: START_TIME, endTime: END_TIME, candles }
+    const data = { product: PRODUCT, candleSize: name, startTime: START_TIME.valueOf(), endTime: END_TIME.valueOf(), candles }
     fs.writeFileSync(path, JSON.stringify(data));
     console.log(chalk.green('Data written to', path));
     callback();
