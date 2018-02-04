@@ -50,13 +50,22 @@ const { product, candles, candleSize, startTime, endTime } = fetchedData;
 /* Constants / Settings */
 /******************************************************************************/
 
-// The number of previous candles that the current candle needs to be larger than
-// in order to be considered "engulfing"
-const LOOKBEHIND_CANDLES = 5;
+// The lookbehind setting determines the number of previous candles that
+// the current candle needs to be larger than in order to be considered "engulfing".
+// Here we'll define the minimum and maximum values we should attempt
+// when trying to optimize the parameter
+const MIN_LOOKBEHIND_CANDLES = 3;
+const MAX_LOOKBEHIND_CANDLES = 15;
 
-// The maximum number of candles to look ahead when determining
-// the highs following a bullish engulfing candle
-const LOOKAHEAD_CANDLES = 5;
+// The lookahead setting determines the maximum number of candles to look ahead
+// when determining the highs and lows following a bullish engulfing candle.
+// Here we'll define the minimum and maximum values we should attempt
+// when trying to optimize the parameter
+const MIN_LOOKAHEAD_CANDLES = 3;
+const MAX_LOOKAHEAD_CANDLES = 15;
+
+// The x-axis group size when calculating the probability of the price increasing by a particular percentage
+const GROUP_SIZE_FOR_PCT_PRICE_INCREASE_PROBABILITY = 0.005;
 
 // Path to HTML template that we'll use to present the results
 const HTML_TEMPLATE_PATH = `${ templateDir }/analyze_bullish_engulfing.html`;
@@ -64,6 +73,10 @@ const HTML_TEMPLATE_PATH = `${ templateDir }/analyze_bullish_engulfing.html`;
 // Filename and path for analysis results
 const OUTPUT_FILENAME = `bullish_engulfing_analysis_${ basename(priceHistoryFilename).replace('.json', '.html') }`;
 const OUTPUT_PATH = `${ analysisDir }/${ OUTPUT_FILENAME }`;
+
+// Chart Colors
+const CHART_GREEN = '#57b888';
+const CHART_RED = '#E94F5F';
 
 
 /******************************************************************************/
@@ -79,82 +92,169 @@ if (!fs.existsSync(analysisDir)) {
 /* Analyze  */
 /******************************************************************************/
 
-const results = analyze(candles, LOOKBEHIND_CANDLES, LOOKAHEAD_CANDLES);
-
-
-/******************************************************************************/
-/* Generate Chart  */
-/******************************************************************************/
-
-
-const { text, x, y1, y2 } = results.reduce((accumulator, d) => {
-  accumulator.text.push(`${ d.price } @ ${ d.time }`),
-  accumulator.x.push(d.pctSizeIncrease);
-  accumulator.y1.push(d.maxPctPriceChange);
-  accumulator.y2.push(d.minPctPriceChange);
-  return accumulator;
-}, { text: [], x: [], y1: [], y2: [] });
-
-var chartData = [
-  { text, x, y: y1, name: 'Highest % Change', mode: 'markers', type: 'scatter', marker: { size: 6, color: '57b888' }, hoverinfo: 'text' },
-  { text, x, y: y2, name: 'Lowest % Change', mode: 'markers', type: 'scatter', marker: { size: 6, color: '#E94F5F' }, hoverinfo: 'text' }
-];
-
-var chartOpts = {
-  filename: OUTPUT_FILENAME,
-  layout: {
-    showLegend: true,
-    margin: { t: 25 },
-    xaxis: {
-      title: `% Size Increase (Over Largest of Previous ${ LOOKBEHIND_CANDLES } Candles)`,
-      tickangle: 33,
-      titlefont: { size: 14 },
-      tickfont: { size: 10 },
-      tickformat: ',.1%',
-    },
-    yaxis: {
-      title: `% Price Change (Over Next ${ LOOKAHEAD_CANDLES } Candles)`,
-      tickangle: -15,
-      titlefont: { size: 14 },
-      tickfont: { size: 10 },
-      tickformat: ',.1%',
-    },
-  },
-};
-plotly.plot(chartData, chartOpts, (err, msg) => {
-  if (err) {
-    console.error(chalk.red(`Error generating chart: ${ err.message }`));
-    process.exit(1);
-  } else {
-    writeResults(msg.url);
+let bestAnalysis, bestProfitImprovement;
+for (let lookbehindCandles = MIN_LOOKBEHIND_CANDLES; lookbehindCandles <= MAX_LOOKBEHIND_CANDLES; lookbehindCandles++) {
+  for (let lookaheadCandles = MIN_LOOKAHEAD_CANDLES; lookaheadCandles <= MAX_LOOKAHEAD_CANDLES; lookaheadCandles++) {
+    const opts = { lookbehindCandles, lookaheadCandles, groupSizeForPctPriceIncreaseProbability: GROUP_SIZE_FOR_PCT_PRICE_INCREASE_PROBABILITY }
+    console.log(chalk.gray('\nPerforming bullish engulfing analysis with the following options:\n...', JSON.stringify(opts)));
+    const analysis = analyze(candles, opts);
+    const bullishEngulfingProfit = analysis.probabilities.reduce((sum, d) => sum + d.probability * d.pctPriceChange, 0) / analysis.probabilities.length;
+    const controlProfit = analysis.controlProbabilities.reduce((sum, d) => sum + d.probability * d.pctPriceChange, 0) / analysis.controlProbabilities.length;
+    const profitImprovement = bullishEngulfingProfit - controlProfit;
+    if (!bestProfitImprovement || bestProfitImprovement < profitImprovement) {
+      bestProfitImprovement = profitImprovement;
+      bestAnalysis = analysis;
+    }
   }
-});
+}
 
 
 /******************************************************************************/
-/* Write Results  */
+/* Generate Scatter Plot  */
 /******************************************************************************/
 
-const writeResults = (chartUrl) => {
-  const analysis = {
+const generateScatterPlot = (analysis) => {
+  return new Promise((resolve, reject) => {
+    const { text, x, y1, y2 } = analysis.events.reduce((accumulator, event) => {
+      if (event.isBullishEngulfing) {
+        accumulator.text.push(`${ event.price } @ ${ event.time }`),
+        accumulator.x.push(event.pctSizeIncrease);
+        accumulator.y1.push(event.maxPctPriceChange);
+        accumulator.y2.push(event.minPctPriceChange);
+      }
+      return accumulator;
+    }, { text: [], x: [], y1: [], y2: [] });
+
+    var chartData = [
+      { text, x, y: y1, name: 'Highest % Change', mode: 'markers', type: 'scatter', marker: { size: 7, color: CHART_GREEN }, hoverinfo: 'text' },
+      { text, x, y: y2, name: 'Lowest % Change', mode: 'markers', type: 'scatter', marker: { size: 7, color: CHART_RED }, hoverinfo: 'text' }
+    ];
+
+    var chartOpts = {
+      filename: OUTPUT_FILENAME,
+      layout: {
+        showLegend: true,
+        margin: { t: 25 },
+        xaxis: {
+          title: `% Size Increase (Over Largest of Previous ${ analysis.lookbehindCandles } Candles)`,
+          tickangle: 33,
+          titlefont: { size: 14 },
+          tickfont: { size: 10 },
+          tickformat: ',.1%',
+        },
+        yaxis: {
+          title: `% Price Change (Over Next ${ analysis.lookaheadCandles } Candles)`,
+          tickangle: -15,
+          titlefont: { size: 14 },
+          tickfont: { size: 10 },
+          tickformat: ',.1%',
+        },
+      },
+    };
+    plotly.plot(chartData, chartOpts, (err, msg) => {
+      err ? reject(err) : resolve(msg.url);
+    });
+  });
+};
+
+
+/******************************************************************************/
+/* Generate Probabilities Grouped Bar Chart  */
+/******************************************************************************/
+
+const generateProbabilitiesGroupedBarChart = (analysis) => {
+  return new Promise((resolve, reject) => {
+    const { controlText, controlX, controlY } = analysis.controlProbabilities.reduce((accumulator, data) => {
+      accumulator.controlText.push(`${ (data.probability * 100).toFixed(1) }% chance of price increasing by ${ (data.pctPriceChange * 100).toFixed(1) }%`);
+      accumulator.controlX.push(data.pctPriceChange);
+      accumulator.controlY.push(data.probability);
+      return accumulator;
+    }, { controlText: [], controlX: [], controlY: [] });
+
+    const { text, x, y } = analysis.probabilities.reduce((accumulator, data) => {
+      accumulator.text.push(`${ (data.probability * 100).toFixed(1) }% chance of price increasing by ${ (data.pctPriceChange * 100).toFixed(1) }%`);
+      accumulator.x.push(data.pctPriceChange);
+      accumulator.y.push(data.probability);
+      return accumulator;
+    }, { text: [], x: [], y: [] });
+
+    var chartData = [
+      {
+        name: 'After Any Candle (Control Group)',
+        text: controlText,
+        x: controlX,
+        y: controlY,
+        type: 'bar',
+        marker: { color: CHART_RED },
+        hoverinfo: 'text',
+      },
+      {
+        name: 'After Bullish Engulfing',
+        text,
+        x,
+        y,
+        type: 'bar',
+        marker: { color: CHART_GREEN },
+        hoverinfo: 'text',
+      }
+    ];
+
+    var chartOpts = {
+      filename: OUTPUT_FILENAME,
+      layout: {
+        showLegend: true,
+        margin: { t: 25 },
+        xaxis: {
+          title: `% Price Increase (Over Closing Price of Candle)`,
+          tickangle: 33,
+          titlefont: { size: 14 },
+          tickfont: { size: 10 },
+          tickformat: ',.1%',
+        },
+        yaxis: {
+          title: `Probability of Reaching (Over Next ${ analysis.lookaheadCandles } Candles)`,
+          tickangle: -15,
+          titlefont: { size: 14 },
+          tickfont: { size: 10 },
+          tickformat: ',.1%',
+        },
+      },
+    };
+    plotly.plot(chartData, chartOpts, (err, msg) => {
+      err ? reject(err) : resolve(msg.url);
+    });
+  });
+};
+
+
+/******************************************************************************/
+/* Write Analysis to File  */
+/******************************************************************************/
+
+Promise.all([
+  generateScatterPlot(bestAnalysis),
+  generateProbabilitiesGroupedBarChart(bestAnalysis),
+]).then(([scatterPlotUrl, probabilitiesGroupedBarChartUrl]) => {
+  const outputData = Object.assign({
     title: `Analysis of Bullish Engulfing Candles During Short-Term Bear Trend`,
     product: product,
     candleSize,
     startTime: moment(startTime).format('MMM Do, YYYY'),
     endTime: moment(endTime).format('MMM Do, YYYY'),
-    lookbehindCandles: LOOKBEHIND_CANDLES,
-    lookaheadCandles: LOOKAHEAD_CANDLES,
-    chartUrl: chartUrl,
-    results,
-  };
+    scatterPlotUrl: scatterPlotUrl,
+    probabilitiesGroupedBarChartUrl: probabilitiesGroupedBarChartUrl,
+  }, bestAnalysis);
 
   let html = fs.readFileSync(HTML_TEMPLATE_PATH, 'utf8');
-  for (let key in analysis) {
-    html = html.replace(new RegExp(`\{${ key }\}`), JSON.stringify(analysis[key]));
+  for (let key in outputData) {
+    html = html.replace(new RegExp(`\{${ key }\}`), JSON.stringify(outputData[key]));
   }
 
   const path = `${ analysisDir }/bullish_engulfing_analysis_${ basename(priceHistoryFilename).replace('.json', '.html') }`;
   fs.writeFileSync(path, html);
   console.log(chalk.green('Data written to', path));
   execSync(`open ${ path }`);
-}
+}).catch((err) => {
+  console.error(chalk.red('Error generating chart:', err.message));
+  process.exit(1);
+});

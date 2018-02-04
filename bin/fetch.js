@@ -17,7 +17,7 @@ const { priceHistoryDir } = require('../settings');
 /******************************************************************************/
 
 const PRODUCT = argv.product || 'BTC-USD';
-const START_TIME = Object.freeze(moment(argv['start-time'] || new Date(2017, 0, 1).getTime()));
+const START_TIME = Object.freeze(moment(argv['start-time'] || new Date(2016, 0, 1).getTime()));
 const END_TIME = Object.freeze(moment(argv['end-time']));
 const CANDLE_SIZE = argv['candle-size'];
 

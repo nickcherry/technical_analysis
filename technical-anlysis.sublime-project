@@ -4,7 +4,9 @@
 		{
 			"path": ".",
       "folder_exclude_patterns": [
-        "node_modules"
+        "analysis",
+        "node_modules",
+        "price_history"
       ]
 		}
 	]

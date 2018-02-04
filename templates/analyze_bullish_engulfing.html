@@ -2,7 +2,7 @@
 <html>
   <head>
     <title>Analysis</title>
-    <link href="https://fonts.googleapis.com/css?family=Work+Sans:300,400,500" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Work+Sans:300,500" rel="stylesheet">
     <style>
       body {
         font-family: 'Work Sans', sans-serif;
@@ -13,18 +13,22 @@
 
       h1, h2, h3, h4, h5 {
         font-weight: 300;
-        margin-bottom: 0;
       }
 
       h1 {
         font-size: 24px;
         font-weight: 500;
+        margin: 0.5em 0 0;
       }
 
       h2 {
         font-size: 14px;
         font-weight: 300;
-        margin-top: .25em;
+        margin: .25em 0 1em;
+      }
+
+      .chart-wrapper {
+        margin-bottom: 1em;
       }
 
       iframe {
@@ -45,7 +49,10 @@
         <span id="lookahead-candles"></span>-candle lookahead
       </h2>
       <div class="chart-wrapper">
-        <div id="chart"></div>
+        <div id="scatter-plot"></div>
+      </div>
+      <div class="chart-wrapper">
+        <div id="probabilities-grouped-bar-chart"></div>
       </div>
     </div>
     <script>
@@ -56,10 +63,12 @@
       var endTime = {endTime};
       var lookbehindCandles = {lookbehindCandles};
       var lookaheadCandles = {lookaheadCandles};
-      var chartUrl = {chartUrl};
-      var results = {results};
+      var scatterPlotUrl = {scatterPlotUrl};
+      var probabilitiesGroupedBarChartUrl = {probabilitiesGroupedBarChartUrl};
+      var events = {events};
 
-      var chartHtml = '<iframe src="' + chartUrl + '.embed" frameborder="0"></iframe>';
+      var scatterPlotHtml = '<iframe src="' + scatterPlotUrl + '.embed" frameborder="0"></iframe>';
+      var probabilitiesGroupedBarChartHtml = '<iframe src="' + probabilitiesGroupedBarChartUrl + '.embed" frameborder="0"></iframe>';
 
       document.getElementById('title').innerHTML = title;
       document.getElementById('product').innerHTML = product;
@@ -68,9 +77,12 @@
       document.getElementById('end-time').innerHTML = endTime;
       document.getElementById('lookbehind-candles').innerHTML = lookbehindCandles;
       document.getElementById('lookahead-candles').innerHTML = lookaheadCandles;
-      document.getElementById('chart').innerHTML = chartHtml;
+      document.getElementById('scatter-plot').innerHTML = scatterPlotHtml;
+      document.getElementById('probabilities-grouped-bar-chart').innerHTML = probabilitiesGroupedBarChartHtml;
 
-      console.log(results);
+      for (var i = 0; i < events.length; i++) {
+        if (events[i].isEngulfingBullish) console.log(events[i]);
+      }
     </script>
   </body>
 </html>
