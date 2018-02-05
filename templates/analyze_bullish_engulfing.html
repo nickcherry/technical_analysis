@@ -46,7 +46,8 @@
         <span id="candle-size"></span> candles,
         <span id="start-time"></span> through <span id="end-time"></span>,
         <span id="lookbehind-candles"></span>-candle lookbehind,
-        <span id="lookahead-candles"></span>-candle lookahead
+        <span id="lookahead-candles"></span>-candle lookahead,
+        <span id="bullish-engulfing-event-count"></span> bullish engulfing events
       </h2>
       <div class="chart-wrapper">
         <div id="scatter-plot"></div>
@@ -66,6 +67,7 @@
       var scatterPlotUrl = {scatterPlotUrl};
       var probabilitiesGroupedBarChartUrl = {probabilitiesGroupedBarChartUrl};
       var events = {events};
+      var bullishEngulfingEventCount = {bullishEngulfingEventCount};
 
       var scatterPlotHtml = '<iframe src="' + scatterPlotUrl + '.embed" frameborder="0"></iframe>';
       var probabilitiesGroupedBarChartHtml = '<iframe src="' + probabilitiesGroupedBarChartUrl + '.embed" frameborder="0"></iframe>';
@@ -77,6 +79,7 @@
       document.getElementById('end-time').innerHTML = endTime;
       document.getElementById('lookbehind-candles').innerHTML = lookbehindCandles;
       document.getElementById('lookahead-candles').innerHTML = lookaheadCandles;
+      document.getElementById('bullish-engulfing-event-count').innerHTML = bullishEngulfingEventCount;
       document.getElementById('scatter-plot').innerHTML = scatterPlotHtml;
       document.getElementById('probabilities-grouped-bar-chart').innerHTML = probabilitiesGroupedBarChartHtml;
 
