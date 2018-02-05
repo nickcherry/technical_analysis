@@ -30,7 +30,7 @@ yarn run fetch-1-day-price-history
 yarn run fetch-price-history
 ```
 
-The product (e.g. USD-BTC) and start/end time can be overridden with the `--product`, `--start-time`, and `--end-time` arguments. By default, price history data will be stored in the [./price_history](./price_history) directory (configurable in [./settings.js](./settings.js).
+The product (e.g. BTC-USD) and start/end time can be overridden with the `--product`, `--start-time`, and `--end-time` arguments. By default, price history data will be stored in the [./price_history](./price_history) directory (configurable in [./settings.js](./settings.js).
 
 
 ## Analyzing Historic Candle Data
