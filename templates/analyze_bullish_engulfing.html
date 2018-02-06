@@ -2,33 +2,35 @@
 <html>
   <head>
     <title>Analysis</title>
-    <link href="https://fonts.googleapis.com/css?family=Work+Sans:300,500" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Work+Sans:300,400,500" rel="stylesheet">
     <style>
       body {
         font-family: 'Work Sans', sans-serif;
-        font-size: 16px;
+        font-size: 14px;
         font-weight: 300;
         margin: 25px;
       }
 
       h1, h2, h3, h4, h5 {
-        font-weight: 300;
+        margin: 7px 0;
       }
 
       h1 {
         font-size: 24px;
         font-weight: 500;
-        margin: 0.5em 0 0;
       }
 
       h2 {
-        font-size: 14px;
-        font-weight: 300;
-        margin: .25em 0 1em;
+        font-size: 15px;
+        font-weight: 400;
+      }
+
+      p {
+        margin: 6px 0;
       }
 
       .chart-wrapper {
-        margin-bottom: 1em;
+        padding: 18px 0;
       }
 
       iframe {
@@ -49,6 +51,9 @@
         <span id="lookahead-candles"></span>-candle lookahead,
         <span id="bullish-engulfing-event-count"></span> bullish engulfing events
       </h2>
+      <p>
+        In this exercise, a bullish engulfing candle is defined as any candle for which 1) the candle in question is bullish, 2) the current candle's body is taller than each of its [LOOKBEHIND COUNT] candles, and 3) the current candle's volume is greater than each of its [LOOKBEHIND COUNT] candles.
+      </p>
       <div class="chart-wrapper">
         <div id="scatter-plot"></div>
       </div>

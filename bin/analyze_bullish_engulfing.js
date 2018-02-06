@@ -116,7 +116,7 @@ const generateScatterPlot = (analysis) => {
     const { text, x, y1, y2 } = analysis.events.reduce((accumulator, event) => {
       if (event.isBullishEngulfing) {
         accumulator.text.push(`${ event.price } @ ${ event.time }`),
-        accumulator.x.push(event.pctSizeIncrease);
+        accumulator.x.push(event.pctVolumeChange);
         accumulator.y1.push(event.maxPctPriceChange);
         accumulator.y2.push(event.minPctPriceChange);
       }
@@ -134,7 +134,7 @@ const generateScatterPlot = (analysis) => {
         showLegend: true,
         margin: { t: 25 },
         xaxis: {
-          title: `% Size Increase (Over Largest of Previous ${ analysis.lookbehindCandles } Candles)`,
+          title: `% Volume Increase (Over Largest of Previous ${ analysis.lookbehindCandles } Candles)`,
           tickangle: 33,
           titlefont: { size: 14 },
           tickfont: { size: 10 },

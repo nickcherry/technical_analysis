@@ -40,5 +40,5 @@ The product (e.g. BTC-USD) and start/end time can be overridden with the `--prod
 To analyze instances of bullish engulfing candles, run the `analyze-bullish-engulfing` script. It expects a `price-history-filename` argument, which is the name of a JSON file (generated using the `fetch` script) that lives within the [./price_history](./price_history) directory. For example:
 
 ```shell
-yarn run analyze-bullish-engulfing --price-history-filename BTC-USD_2016-01-01_2018-02-04_1-hour.json
+yarn run analyze-bullish-engulfing --price-history-filename BTC-USD_2016-01-01_2018-02-04_1-day.json
 ```
