@@ -21,7 +21,7 @@
       }
 
       h2 {
-        font-size: 15px;
+        font-size: 14px;
         font-weight: 400;
       }
 
@@ -44,19 +44,17 @@
     <div id="wrapper">
       <h1 id="title"></h1>
       <h2>
-        <span id="product"></span>,
-        <span id="candle-size"></span> candles,
-        <span id="start-time"></span> through <span id="end-time"></span>,
-        <span id="lookbehind-candles"></span>-candle lookbehind,
-        <span id="lookahead-candles"></span>-candle lookahead,
-        <span id="bullish-engulfing-event-count"></span> bullish engulfing events
+        <span id="product"></span> |
+        <span id="candle-size"></span> candles |
+        <span id="start-time"></span> to <span id="end-time"></span> |
+        <span id="lookbehind-candles"></span>-candle lookbehind |
+        <span id="lookahead-candles"></span>-candle lookahead |
+        <span id="allowed-wick-to-body-ratio"></span> max wick-to-body ratio |
+        <span id="bullish-engulfing-event-count"></span> events
       </h2>
       <p>
-        In this exercise, a bullish engulfing candle is defined as any candle for which 1) the candle in question is bullish, 2) the current candle's body is taller than each of its [LOOKBEHIND COUNT] candles, and 3) the current candle's volume is greater than each of its [LOOKBEHIND COUNT] candles.
+        In this exercise, a bullish engulfing candle is defined as any candle for which 1) the close is greater than the open and equal to the high, 2) the body is taller than each of its preceding <span id="lookbehind-candles-2"></span> candles, and 3) the volume is greater than each of its preceding <span id="lookbehind-candles-3"></span> candles.
       </p>
-      <div class="chart-wrapper">
-        <div id="scatter-plot"></div>
-      </div>
       <div class="chart-wrapper">
         <div id="probabilities-grouped-bar-chart"></div>
       </div>
@@ -69,12 +67,11 @@
       var endTime = {endTime};
       var lookbehindCandles = {lookbehindCandles};
       var lookaheadCandles = {lookaheadCandles};
-      var scatterPlotUrl = {scatterPlotUrl};
+      var allowedWickToBodyRatio = {allowedWickToBodyRatio};
       var probabilitiesGroupedBarChartUrl = {probabilitiesGroupedBarChartUrl};
       var events = {events};
       var bullishEngulfingEventCount = {bullishEngulfingEventCount};
 
-      var scatterPlotHtml = '<iframe src="' + scatterPlotUrl + '.embed" frameborder="0"></iframe>';
       var probabilitiesGroupedBarChartHtml = '<iframe src="' + probabilitiesGroupedBarChartUrl + '.embed" frameborder="0"></iframe>';
 
       document.getElementById('title').innerHTML = title;
@@ -83,9 +80,11 @@
       document.getElementById('start-time').innerHTML = startTime;
       document.getElementById('end-time').innerHTML = endTime;
       document.getElementById('lookbehind-candles').innerHTML = lookbehindCandles;
+      document.getElementById('lookbehind-candles-2').innerHTML = lookbehindCandles;
+      document.getElementById('lookbehind-candles-3').innerHTML = lookbehindCandles;
       document.getElementById('lookahead-candles').innerHTML = lookaheadCandles;
+      document.getElementById('allowed-wick-to-body-ratio').innerHTML = (allowedWickToBodyRatio * 100).toFixed(1) + '%';
       document.getElementById('bullish-engulfing-event-count').innerHTML = bullishEngulfingEventCount;
-      document.getElementById('scatter-plot').innerHTML = scatterPlotHtml;
       document.getElementById('probabilities-grouped-bar-chart').innerHTML = probabilitiesGroupedBarChartHtml;
 
       for (var i = 0; i < events.length; i++) {

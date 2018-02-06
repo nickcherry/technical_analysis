@@ -64,6 +64,14 @@ const MAX_LOOKBEHIND_CANDLES = 8;
 const MIN_LOOKAHEAD_CANDLES = 1;
 const MAX_LOOKAHEAD_CANDLES = 8;
 
+// The allowed wick to body ratio is the maximum allowed percentage of a candle's body height
+// that a top wick may be in order for the candle to be classified as a bullish engulfing candle.
+// Put another way, this setting determines how small the top wick can be,
+// in relation to the candle's body.
+const MIN_ALLOWED_WICK_TO_BODY_RATIO = 0;
+const MAX_ALLOWED_WICK_TO_BODY_RATIO = 0.2;
+const ALLOWED_WICK_TO_BODY_RATIO_INCREMENT = 0.05;
+
 // The x-axis group size when calculating the probability of the price increasing by a particular percentage
 const GROUP_SIZE_FOR_PCT_PRICE_INCREASE_PROBABILITY = 0.0025;
 
@@ -95,65 +103,23 @@ if (!fs.existsSync(analysisDir)) {
 let bestAnalysis, bestProfit;
 for (let lookbehindCandles = MIN_LOOKBEHIND_CANDLES; lookbehindCandles <= MAX_LOOKBEHIND_CANDLES; lookbehindCandles++) {
   for (let lookaheadCandles = MIN_LOOKAHEAD_CANDLES; lookaheadCandles <= MAX_LOOKAHEAD_CANDLES; lookaheadCandles++) {
-    const opts = { lookbehindCandles, lookaheadCandles, groupSizeForPctPriceIncreaseProbability: GROUP_SIZE_FOR_PCT_PRICE_INCREASE_PROBABILITY }
-    console.log(chalk.gray('\nPerforming bullish engulfing analysis with the following options:\n...', JSON.stringify(opts)));
-    const analysis = analyze(candles, opts);
-    const profit = analysis.probabilities.reduce((sum, d) => sum + d.probability * d.pctPriceChange, 0) / analysis.probabilities.length;
-    if (!bestProfit || bestProfit < profit) {
-      bestProfit = profit;
-      bestAnalysis = analysis;
+    for (let allowedWickToBodyRatio = MIN_ALLOWED_WICK_TO_BODY_RATIO; allowedWickToBodyRatio <= MAX_ALLOWED_WICK_TO_BODY_RATIO; allowedWickToBodyRatio += ALLOWED_WICK_TO_BODY_RATIO_INCREMENT) {
+      const opts = {
+        lookbehindCandles,
+        lookaheadCandles,
+        allowedWickToBodyRatio,
+        groupSizeForPctPriceIncreaseProbability: GROUP_SIZE_FOR_PCT_PRICE_INCREASE_PROBABILITY,
+      };
+      console.log(chalk.gray('\nPerforming bullish engulfing analysis with the following options:\n...', JSON.stringify(opts)));
+      const analysis = analyze(candles, opts);
+      const profit = analysis.probabilities.reduce((sum, d) => sum + d.probability * d.pctPriceChange, 0) / analysis.probabilities.length;
+      if (!bestProfit || bestProfit < profit) {
+        bestProfit = profit;
+        bestAnalysis = analysis;
+      }
     }
   }
 }
-
-
-/******************************************************************************/
-/* Generate Scatter Plot  */
-/******************************************************************************/
-
-const generateScatterPlot = (analysis) => {
-  return new Promise((resolve, reject) => {
-    const { text, x, y1, y2 } = analysis.events.reduce((accumulator, event) => {
-      if (event.isBullishEngulfing) {
-        accumulator.text.push(`${ event.price } @ ${ event.time }`),
-        accumulator.x.push(event.pctVolumeChange);
-        accumulator.y1.push(event.maxPctPriceChange);
-        accumulator.y2.push(event.minPctPriceChange);
-      }
-      return accumulator;
-    }, { text: [], x: [], y1: [], y2: [] });
-
-    var chartData = [
-      { text, x, y: y1, name: 'Highest % Change', mode: 'markers', type: 'scatter', marker: { size: 8, color: CHART_GREEN }, hoverinfo: 'text' },
-      { text, x, y: y2, name: 'Lowest % Change', mode: 'markers', type: 'scatter', marker: { size: 8, color: CHART_RED }, hoverinfo: 'text' }
-    ];
-
-    var chartOpts = {
-      filename: OUTPUT_FILENAME,
-      layout: {
-        showLegend: true,
-        margin: { t: 25 },
-        xaxis: {
-          title: `% Volume Increase (Over Largest of Previous ${ analysis.lookbehindCandles } Candles)`,
-          tickangle: 33,
-          titlefont: { size: 14 },
-          tickfont: { size: 10 },
-          tickformat: ',.1%',
-        },
-        yaxis: {
-          title: `% Price Change (Over Next ${ analysis.lookaheadCandles } Candles)`,
-          tickangle: -15,
-          titlefont: { size: 14 },
-          tickfont: { size: 10 },
-          tickformat: ',.1%',
-        },
-      },
-    };
-    plotly.plot(chartData, chartOpts, (err, msg) => {
-      err ? reject(err) : resolve(msg.url);
-    });
-  });
-};
 
 
 /******************************************************************************/
@@ -230,16 +196,14 @@ const generateProbabilitiesGroupedBarChart = (analysis) => {
 /******************************************************************************/
 
 Promise.all([
-  generateScatterPlot(bestAnalysis),
   generateProbabilitiesGroupedBarChart(bestAnalysis),
-]).then(([scatterPlotUrl, probabilitiesGroupedBarChartUrl]) => {
+]).then(([probabilitiesGroupedBarChartUrl]) => {
   const outputData = Object.assign({
     title: `Analysis of Bullish Engulfing Candles`,
     product: product,
     candleSize,
     startTime: moment(startTime).format('MMM Do, YYYY'),
     endTime: moment(endTime).format('MMM Do, YYYY'),
-    scatterPlotUrl: scatterPlotUrl,
     probabilitiesGroupedBarChartUrl: probabilitiesGroupedBarChartUrl,
   }, bestAnalysis);
 
