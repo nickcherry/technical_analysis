@@ -32,12 +32,18 @@ module.exports.shared = {
 
 const priceHistoryDir = `${ __dirname }/price_history`;
 
+const product = 'BTC-USD';
+const realTimeGdaxCandleFetcherType = 'REAL_TIME_GDAX_CANDLE_FETCHER';
+const realTimeGdaxCandleFetcherInterval = 1 * 60 * 1000; // seconds
+const realTimeGdaxCandleFetcherLookback = 14 * 24 * 60 * 60 * 1000; // seconds
+const realTimeGdaxCandleFetcherCandleSize = '1-day';
+
 const bullishEngulfingId = 'bullishEngulfing';
 const bullishEngulfingType = 'BULLISH_ENGULFING';
 const bullishEngulfingCollection = 'bullishEngulfing';
-const bullishEngulfingProduct = 'BTC-USD';
 const bullishEngulfingLookbackCandles = 4;
 const bullishEngulfingAllowedWickToBodyRatio = 0.2;
+const bullishEngulfingCandleSize = '1-day'; // 1-day, 6-hour, 1-hour, 15-minute, 5-minute, or 1-minute
 
 
 /**************************/
@@ -45,9 +51,9 @@ const bullishEngulfingAllowedWickToBodyRatio = 0.2;
 /**************************/
 
 module.exports.fetching = {
-  historicCandles: {
-    product: 'BTC-USD',
-    candleSize: '1-minute', // 1-day, 6-hour, 1-hour, 15-minute, 5-minute, or 1-minute
+  oneTimeGdaxCandleFetcher: {
+    product,
+    candleSize: bullishEngulfingCandleSize, // 1-day, 6-hour, 1-hour, 15-minute, 5-minute, or 1-minute
     startTime: moment(new Date(2016, 0, 1).getTime()),
     endTime: moment(new Date(2018, 1, 9).getTime()),
     priceHistoryDir,
@@ -63,9 +69,9 @@ module.exports.training = {
     {
       id: bullishEngulfingId,
       type: bullishEngulfingType,
-      product: bullishEngulfingProduct,
+      product: product,
       dbCollection: bullishEngulfingCollection,
-      priceHistoryFile: `${ priceHistoryDir }/${ bullishEngulfingProduct }_2016-01-01_2018-02-09_1-hour.json`,
+      priceHistoryFile: `${ priceHistoryDir }/${ product }_2016-01-01_2018-02-09_${ bullishEngulfingCandleSize }.json`,
       lookbackCandles: bullishEngulfingLookbackCandles,
       allowedWickToBodyRatio: bullishEngulfingAllowedWickToBodyRatio,
       lookaheadCandles: 6,
@@ -79,10 +85,20 @@ module.exports.training = {
 /**************************/
 
 module.exports.inferring = {
+  fetcherConfigs: [
+    {
+      type: realTimeGdaxCandleFetcherType,
+      product,
+      candleSize: realTimeGdaxCandleFetcherCandleSize,
+      lookback: realTimeGdaxCandleFetcherLookback,
+      interval: realTimeGdaxCandleFetcherInterval,
+    }
+  ],
   pluginConfigs: [
     {
       id: bullishEngulfingId,
-      product: bullishEngulfingProduct,
+      product,
+      candleSize: bullishEngulfingCandleSize,
       type: bullishEngulfingType,
       dbCollection: bullishEngulfingCollection,
       lookbackCandles: bullishEngulfingLookbackCandles,
@@ -97,12 +113,13 @@ module.exports.inferring = {
 /******************************************************************************/
 
 const errors = [
-  'fetching.historicCandles.candleSize',
-  'fetching.historicCandles.endTime',
-  'fetching.historicCandles.product',
-  'fetching.historicCandles.startTime',
-  'fetching.historicCandles.priceHistoryDir',
+  'fetching.oneTimeGdaxCandleFetcher.candleSize',
+  'fetching.oneTimeGdaxCandleFetcher.endTime',
+  'fetching.oneTimeGdaxCandleFetcher.product',
+  'fetching.oneTimeGdaxCandleFetcher.startTime',
+  'fetching.oneTimeGdaxCandleFetcher.priceHistoryDir',
 
+  'inferring.fetcherConfigs',
   'inferring.pluginConfigs',
 
   'shared.mongoDatabaseName',
