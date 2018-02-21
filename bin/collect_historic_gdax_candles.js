@@ -5,8 +5,8 @@
 const chalk = require('chalk');
 const fs = require('fs');
 const moment = require('moment');
-const { priceHistoryDir, product, startTime, endTime, candleSize} = require('../settings').fetching.oneTimeGdaxCandleFetcher;
-const OneTimeGDAXCandleFetcher = require('../lib/fetchers/GDAXCandleFetcher/OneTimeGDAXCandleFetcher');
+const { priceHistoryDir, product, startTime, endTime, candleSize} = require('../settings').collecting.oneTimeGdaxCandleCollector;
+const OneTimeGDAXCandleCollector = require('../lib/collectors/GDAXCandleCollector/OneTimeGDAXCandleCollector');
 
 
 /******************************************************************************/
@@ -22,13 +22,13 @@ if (!fs.existsSync(priceHistoryDir)) {
 /* Initialize  */
 /******************************************************************************/
 
-const fetcher = new OneTimeGDAXCandleFetcher({ product, startTime, endTime, candleSize });
+const collector = new OneTimeGDAXCandleCollector({ product, startTime, endTime, candleSize });
 
-fetcher.on(OneTimeGDAXCandleFetcher.events.FETCH_BATCH_FINISHED, ({ start, end }) => {
-  console.log(chalk.gray('...fetching', moment(start).format('YYYY-MM-DD'), 'through', moment(end).format('YYYY-MM-DD')));
+collector.on(OneTimeGDAXCandleCollector.events.COLLECT_BATCH_FINISHED, ({ start, end }) => {
+  console.log(chalk.gray('...collecting', moment(start).format('YYYY-MM-DD'), 'through', moment(end).format('YYYY-MM-DD')));
 });
 
-fetcher.run().then((candles) => {
+collector.run().then((candles) => {
   const path = `${ priceHistoryDir }/${ product }_${ startTime.format('YYYY-MM-DD') }_${ endTime.format('YYYY-MM-DD') }_${ candleSize }.json`;
   const data = { product: product, candleSize, startTime: startTime.valueOf(), endTime: endTime.valueOf(), candles }
   fs.writeFileSync(path, JSON.stringify(data));

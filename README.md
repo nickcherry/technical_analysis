@@ -25,16 +25,16 @@ __Note: Currently there are no required environment variables, but if future plu
 In addition to any environment variables, there are a handful of required shared settings defined in [`./settings.js`](./settings.js), notably `mongoUri`, `mongoDatabaseName`, and `priceHistoryDir`. The default values are sensible, but should be reviewed.
 
 
-## Fetching Historic Data
+## Collecting Historic Data
 
 Most/all plugins will require historic data for training. Listed below are the strategies currently available for collecting data:
 
 ### Historic GDAX Candles
 
-To fetch GDAX's historic candle data for the product, timeframe, and candle size indicated in [`./settings.js`](./settings.js), run the following from the project root:
+To collect GDAX's historic candle data for the product, timeframe, and candle size indicated in [`./settings.js`](./settings.js), run the following from the project root:
 
 ```shell
-yarn run fetch-price-history
+yarn run collect-gdax-price-history
 ```
 
 ### Historic Tweets
@@ -44,7 +44,7 @@ _Coming Soon..._
 
 ## Training With Historic Data
 
-Once the necessary data has been fetched, configure the desired training plugins (described below) in [`./settings.js`](./settings.js), then run the `train` script from the project root:
+Once the necessary data has been collected, configure the desired training plugins (described below) in [`./settings.js`](./settings.js), then run the `train` script from the project root:
 
 ```shell
 yarn run train
@@ -101,7 +101,7 @@ When the current candle meets the criteria defined in the "Bullish Engulfing Tra
 ##### Example Usage (see [./bin/infer.js](./bin/infer.js))
 
 ```javascript
-const inferrer = new QuantInferrer(mongoUri, mongoDatabaseName, fetcherConfigs, pluginConfigs);
+const inferrer = new QuantInferrer(mongoUri, mongoDatabaseName, collectorConfigs, pluginConfigs);
 
 inferrer.on(BullishEngulfingInferrer.events.CURRENT_CANDLE_IS_BULLISH_ENGULFING, (pluginConfig, candle, probabilities) => {
   console.log(`CURRENT_CANDLE_IS_BULLISH_ENGULFING at ${ formatTime() }`);
@@ -121,7 +121,7 @@ inferrer.run();
 _Coming Soon..._
 
 
-## Registering A New Fetcher
+## Registering A New Collector
 
 _Coming Soon..._
 

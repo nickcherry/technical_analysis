@@ -33,10 +33,10 @@ module.exports.shared = {
 const priceHistoryDir = `${ __dirname }/price_history`;
 
 const product = 'BTC-USD';
-const realTimeGdaxCandleFetcherType = 'REAL_TIME_GDAX_CANDLE_FETCHER';
-const realTimeGdaxCandleFetcherInterval = 1 * 60 * 1000; // seconds
-const realTimeGdaxCandleFetcherLookback = 14 * 24 * 60 * 60 * 1000; // seconds
-const realTimeGdaxCandleFetcherCandleSize = '1-day';
+const realTimeGdaxCandleCollectorType = 'REAL_TIME_GDAX_CANDLE_COLLECTOR';
+const realTimeGdaxCandleCollectorInterval = 1 * 60 * 1000; // seconds
+const realTimeGdaxCandleCollectorLookback = 14 * 24 * 60 * 60 * 1000; // seconds
+const realTimeGdaxCandleCollectorCandleSize = '1-day';
 
 const bullishEngulfingId = 'bullishEngulfing';
 const bullishEngulfingType = 'BULLISH_ENGULFING';
@@ -48,11 +48,11 @@ const bullishEngulfingCandleSize = '1-day'; // 1-day, 6-hour, 1-hour, 15-minute,
 
 
 /**************************/
-/* Fetching Config */
+/* Collecting Config */
 /**************************/
 
-module.exports.fetching = {
-  oneTimeGdaxCandleFetcher: {
+module.exports.collecting = {
+  oneTimeGdaxCandleCollector: {
     product,
     candleSize: bullishEngulfingCandleSize, // 1-day, 6-hour, 1-hour, 15-minute, 5-minute, or 1-minute
     startTime: moment(new Date(2016, 0, 1).getTime()),
@@ -86,13 +86,13 @@ module.exports.training = {
 /**************************/
 
 module.exports.inferring = {
-  fetcherConfigs: [
+  collectorConfigs: [
     {
-      type: realTimeGdaxCandleFetcherType,
+      type: realTimeGdaxCandleCollectorType,
       product,
-      candleSize: realTimeGdaxCandleFetcherCandleSize,
-      lookback: realTimeGdaxCandleFetcherLookback,
-      interval: realTimeGdaxCandleFetcherInterval,
+      candleSize: realTimeGdaxCandleCollectorCandleSize,
+      lookback: realTimeGdaxCandleCollectorLookback,
+      interval: realTimeGdaxCandleCollectorInterval,
     }
   ],
   pluginConfigs: [
@@ -115,13 +115,13 @@ module.exports.inferring = {
 /******************************************************************************/
 
 const errors = [
-  'fetching.oneTimeGdaxCandleFetcher.candleSize',
-  'fetching.oneTimeGdaxCandleFetcher.endTime',
-  'fetching.oneTimeGdaxCandleFetcher.product',
-  'fetching.oneTimeGdaxCandleFetcher.startTime',
-  'fetching.oneTimeGdaxCandleFetcher.priceHistoryDir',
+  'collecting.oneTimeGdaxCandleCollector.candleSize',
+  'collecting.oneTimeGdaxCandleCollector.endTime',
+  'collecting.oneTimeGdaxCandleCollector.product',
+  'collecting.oneTimeGdaxCandleCollector.startTime',
+  'collecting.oneTimeGdaxCandleCollector.priceHistoryDir',
 
-  'inferring.fetcherConfigs',
+  'inferring.collectorConfigs',
   'inferring.pluginConfigs',
 
   'shared.mongoDatabaseName',

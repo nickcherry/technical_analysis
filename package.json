@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "fetch-price-history": "node --harmony bin/fetch_historic_candles.js",
+    "collect-gdax-price-history": "node --harmony bin/collect_historic_gdax_candles.js",
     "infer": "node --harmony bin/infer.js",
     "train": "node --harmony bin/train.js"
   },
