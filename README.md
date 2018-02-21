@@ -79,7 +79,7 @@ _Coming Soon..._
 
 ## Inferring Based On Live Data
 
-Once the necessary training has been completed (see "Training With Historic Data" section), configure the desired training plugins (described below) in [`./settings.js`](./settings.js), then run the `infer` script from the project root:
+Once the necessary training has been completed (see "Training With Historic Data" section), configure the desired inference plugins (described below) in [`./settings.js`](./settings.js), then run the `infer` script from the project root:
 
 ```shell
 yarn run infer
