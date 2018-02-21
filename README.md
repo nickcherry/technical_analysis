@@ -85,7 +85,7 @@ Once the necessary training has been completed (see "Training With Historic Data
 yarn run infer
 ```
 
-### Available Inferring Plugins
+### Available Inference Plugins
 
 #### Bulllish Engulfing Inferrer
 
