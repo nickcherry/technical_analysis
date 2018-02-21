@@ -2,7 +2,7 @@
 
 This project aims to provide robust and extensible tools for better understanding market behavior and gaining insights on future trends. It has three pillars of focus:
 
-1. Fetching historic and live data relevant to market behavior (e.g. GDAX candles, tweets, etc.)
+1. Collecting data (historic and real-time) relevant to market behavior (e.g. GDAX candles, tweets, etc.)
 2. Training plugins using historic data
 3. Inferring future market behavior using live data and knowledge gained through training
 
