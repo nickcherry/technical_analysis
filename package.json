@@ -1,13 +1,8 @@
 {
   "scripts": {
-    "analyze-bullish-engulfing": "node --harmony bin/analyze_bullish_engulfing.js",
-    "fetch-1-minute-price-history": "node --harmony bin/fetch.js --candle-size 1-minute",
-    "fetch-5-minute-price-history": "node --harmony bin/fetch.js --candle-size 5-minute",
-    "fetch-15-minute-price-history": "node --harmony bin/fetch.js --candle-size 15-minute",
-    "fetch-1-hour-price-history": "node --harmony bin/fetch.js --candle-size 1-hour",
-    "fetch-6-hour-price-history": "node --harmony bin/fetch.js --candle-size 6-hour",
-    "fetch-1-day-price-history": "node --harmony bin/fetch.js --candle-size 1-day",
-    "fetch-price-history": "node --harmony bin/fetch.js --candle-size all"
+    "fetch-price-history": "node --harmony bin/fetch_historic_candles.js",
+    "infer": "node --harmony bin/infer.js",
+    "train": "node --harmony bin/train.js"
   },
   "dependencies": {
     "async": "^2.6.0",
@@ -16,6 +11,7 @@
     "gdax": "^0.5.1",
     "mathjs": "^3.20.1",
     "moment": "^2.20.1",
+    "mongodb": "^3.0.2",
     "optimist": "^0.6.1",
     "plotly": "^1.0.6"
   }
