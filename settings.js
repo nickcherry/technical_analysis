@@ -42,6 +42,7 @@ const bullishEngulfingId = 'bullishEngulfing';
 const bullishEngulfingType = 'BULLISH_ENGULFING';
 const bullishEngulfingCollection = 'bullishEngulfing';
 const bullishEngulfingLookbackCandles = 4;
+const bullishEngulfingLookaheadCandles = 6;
 const bullishEngulfingAllowedWickToBodyRatio = 0.2;
 const bullishEngulfingCandleSize = '1-day'; // 1-day, 6-hour, 1-hour, 15-minute, 5-minute, or 1-minute
 
@@ -74,7 +75,7 @@ module.exports.training = {
       priceHistoryFile: `${ priceHistoryDir }/${ product }_2016-01-01_2018-02-09_${ bullishEngulfingCandleSize }.json`,
       lookbackCandles: bullishEngulfingLookbackCandles,
       allowedWickToBodyRatio: bullishEngulfingAllowedWickToBodyRatio,
-      lookaheadCandles: 6,
+      lookaheadCandles: bullishEngulfingLookaheadCandles,
       groupSizeForPctPriceIncreaseProbability: 0.0025,
     },
   ],
@@ -102,6 +103,7 @@ module.exports.inferring = {
       type: bullishEngulfingType,
       dbCollection: bullishEngulfingCollection,
       lookbackCandles: bullishEngulfingLookbackCandles,
+      lookaheadCandles: bullishEngulfingLookaheadCandles,
       allowedWickToBodyRatio: bullishEngulfingAllowedWickToBodyRatio,
     },
   ],

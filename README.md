@@ -89,7 +89,31 @@ yarn run infer
 
 #### Bulllish Engulfing Inferrer
 
-_Coming Soon..._
+When the most current candle meets the criteria defined in the "Bullish Engulfing Trainer" section, the Bullish Engulfing Inferrer emits a `BullishEngulfingInferrer.CURRENT_CANDLE_IS_BULLISH_ENGULFING` event, which contains data about the most recent candle, along with probabilities of various percentage-price increases over the next `lookaheadCandles` candles. The plugin requires the following to be configured:
+
+- __product__: The trading pair to be analyzed, e.g. `BTC-USD`
+- __dbCollection__: The mongo collection where Bullish Engulfing Training data is stored
+- __lookbackCandles__: The number of previous candles that the current candle needs to be larger than in order to be considered "engulfing"
+- __lookaheadCandles__: The maximum number of candles to look ahead when determining the highs following a bullish engulfing candle (used to identify the appropriate training data)
+- __allowedWickToBodyRatio__: The maximum body-to-upper-wick ratio that is allowed for a candle to be considered engulfing
+
+##### Example Usage (see [./bin/infer.js](./bin/infer.js))
+
+```javascript
+const inferrer = new QuantInferrer(mongoUri, mongoDatabaseName, fetcherConfigs, pluginConfigs);
+
+inferrer.on(BullishEngulfingInferrer.events.CURRENT_CANDLE_IS_BULLISH_ENGULFING, (pluginConfig, candle, probabilities) => {
+  console.log(`CURRENT_CANDLE_IS_BULLISH_ENGULFING at ${ formatTime() }`);
+  console.log(`...${ pluginConfig.product }: ${ formatUSD(candle.close) }`);
+  probabilities.forEach(({ probability, pctPriceChange }) => {
+    if (probability >= 0.8 && pctPriceChange > 0) {
+      console.log(`......${ formatPercent(probability) } likelihood of increasing by ${ formatPercent(pctPriceChange) } over the next ${ pluginConfig.lookaheadCandles } candles`);
+    }
+  });
+});
+
+inferrer.run();
+```
 
 #### Twitter Sentiment Inferrer
 
