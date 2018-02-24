@@ -22,20 +22,41 @@ This repository's scripts use [dotenv](https://www.npmjs.com/package/dotenv) to 
 
 __Note: Currently there are no required environment variables, but if future plugins require API keys, this is where they should live.__
 
-In addition to any environment variables, there are a handful of required shared settings defined in [`./settings.js`](./settings.js), notably `mongoUri`, `mongoDatabaseName`, and `priceHistoryDir`. The default values are sensible, but should be reviewed.
+In addition to any environment variables, there are a few required shared settings defined in [`./settings.js`](./settings.js), notably `mongoUri` and `mongoDatabaseName`. The default values are sensible, but should be reviewed.
 
 
-## Collecting Historic Data
+## Collecting Data Data
 
-Most/all plugins will require historic data for training. Listed below are the strategies currently available for collecting data:
+Most/all plugins will require historic data for training and real-time data for inference. Listed below are the strategies currently available for collecting data.
 
-### Historic GDAX Candles
+### GDAX Candles
 
-To collect GDAX's historic candle data for the product, timeframe, and candle size indicated in [`./settings.js`](./settings.js), run the following from the project root:
+#### Historic GDAX Candles
 
-```shell
-yarn run collect-gdax-price-history
+To collect GDAX's historic candle data, first instantiate a new [`OneTimeGDAXCandleCollector`](./lib/collectors/GDAXCandleCollector/OneTimeGDAXCandleCollector.js) with the following configuration:
+
+- __product__:  The trading pair, e.g. `BTC-USD`
+- __startTime__: A `Date` object denoting the beginning of the range
+- __endtime__: A `Date` object denoting the end of the range
+- __candleSize__: The duration of candles to be gathered, supported values are `1-day`, `6-hour`, `1-hour`, `15-minute`, `5-minute`, and `1-minute`.
+
+Next, invoke the `start` method of the collector, and when the candles for the given configuration have been gathered, the returned promise will resolve. Below is a simple example. See [`./bin/collect_historic_gdax_candles.js`](./bin/collect_historic_gdax_candles.js) for more details:
+
+```javascript
+const config = { product, startTime, endTime, candleSize };
+const collector = new OneTimeGDAXCandleCollector(config);
+collector.start().then((candles) => console.log(candles));
 ```
+
+#### Real-Time GDAX Candles
+
+To collect real-time GDAX candles, first instantiate a new [`RealTimeGDAXCandleCollector`](./lib/collectors/GDAXCandleCollector/RealTimeGDAXCandleCollector.js) with the following configuration:
+
+- __product__:  The trading pair, e.g. `BTC-USD`
+- __candleSize__: The duration of candles to be gathered, supported values are `1-day`, `6-hour`, `1-hour`, `15-minute`, `5-minute`, and `1-minute`.
+- __interval__: The polling frequency in milliseconds.
+
+In most cases, the collector instance should be passed to a [`Quant`](./lib/Quant.js) instance, which will manage starting and stopping the collector. When new candles have been retrieved, the collector will emit a `RealTimeGDAXCandleCollector.events.COLLECT_FINISHED` event, which can be utilized by concerned plugins. See [`./bin/infer_bullish_engulfing.js`](./bin/infer_bullish\_engulfing.js) for example usage.
 
 ### Historic Tweets
 
@@ -44,17 +65,13 @@ _Coming Soon..._
 
 ## Training With Historic Data
 
-Once the necessary data has been collected, configure the desired training plugins (described below) in [`./settings.js`](./settings.js), then run the `train` script from the project root:
-
-```shell
-yarn run train
-```
+Once the necessary data has been collected, plugins can begin training with historic data. Listed below are the plugins currently available:
 
 ### Available Training Plugins
 
 #### Bullish Engulfing Trainer
 
-The Bullish Engulfing Trainer identifies historic instances of bullish engulfing candles and calculates the probability of various percent-price increases in the near-term future. For this exercise, a bullish engulfing candle is defined as having:
+The [`BullishEngulfingTrainer`](./lib/plugins/BullishEngulfing/BullishEngulfingTrainer.js) identifies historic instances of bullish engulfing candles and calculates the probability of various percent-price increases in the near-term future. For this exercise, a bullish engulfing candle is defined as having:
 
 1. a higher closing price than opening price
 2. a taller candle body than all recent candles
@@ -79,17 +96,13 @@ _Coming Soon..._
 
 ## Inferring Based On Live Data
 
-Once the necessary training has been completed (see "Training With Historic Data" section), configure the desired inference plugins (described below) in [`./settings.js`](./settings.js), then run the `infer` script from the project root:
-
-```shell
-yarn run infer
-```
+Once the necessary training has been completed, plugins can begin inferring with real-time data. Listed below are the plugins currently available:
 
 ### Available Inference Plugins
 
 #### Bulllish Engulfing Inferrer
 
-When the current candle meets the criteria defined in the "Bullish Engulfing Trainer" section, the Bullish Engulfing Inferrer emits a `BullishEngulfingInferrer.CURRENT_CANDLE_IS_BULLISH_ENGULFING` event, which contains the plugin settings, data about the most recent candle, along with probabilities of various percentage-price increases over the next `lookaheadCandles` candles. The plugin requires the following to be configured:
+When the current candle meets the criteria defined in the "Bullish Engulfing Trainer" section, the [`BullishEngulfingInferrer`](./lib/plugins/BullishEngulfing/BullishEngulfingInferrer.js) emits a `BullishEngulfingInferrer.CURRENT_CANDLE_IS_BULLISH_ENGULFING` event, which contains the plugin settings, data about the most recent candle, along with probabilities of various percentage-price increases over the next `lookaheadCandles` candles. The plugin requires the following to be configured:
 
 - __product__: The trading pair to be analyzed, e.g. `BTC-USD`
 - __dbCollection__: The mongo collection where Bullish Engulfing Training data is stored
@@ -97,24 +110,7 @@ When the current candle meets the criteria defined in the "Bullish Engulfing Tra
 - __lookaheadCandles__: The maximum number of candles to look ahead when determining the highs following a bullish engulfing candle (used to identify the appropriate training data)
 - __allowedWickToBodyRatio__: The maximum body-to-upper-wick ratio that is allowed for a candle to be considered engulfing
 
-
-##### Example Usage (see [./bin/infer.js](./bin/infer.js))
-
-```javascript
-const inferrer = new QuantInferrer(mongoUri, mongoDatabaseName, collectorConfigs, pluginConfigs);
-
-inferrer.on(BullishEngulfingInferrer.events.CURRENT_CANDLE_IS_BULLISH_ENGULFING, (pluginConfig, candle, probabilities) => {
-  console.log(`CURRENT_CANDLE_IS_BULLISH_ENGULFING at ${ formatTime() }`);
-  console.log(`...${ pluginConfig.product }: ${ formatUSD(candle.close) }`);
-  probabilities.forEach(({ probability, pctPriceChange }) => {
-    if (probability >= 0.8 && pctPriceChange > 0) {
-      console.log(`......${ formatPercent(probability) } likelihood of increasing by ${ formatPercent(pctPriceChange) } over the next ${ pluginConfig.lookaheadCandles } candles`);
-    }
-  });
-});
-
-inferrer.run();
-```
+The [`BullishEngulfingInferrer`](./lib/plugins/BullishEngulfing/BullishEngulfingInferrer.js) also requires a [`RealTimeGDAXCandleCollector`](./lib/collectors/GDAXCandleCollector/RealTimeGDAXCandleCollector.js) for a data feed. See [`./bin/infer_bullish_engulfing.js`](./bin/infer_bullish_engulfing.js) for example usage.
 
 #### Twitter Sentiment Inferrer
 

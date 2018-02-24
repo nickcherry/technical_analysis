@@ -2,12 +2,12 @@
 /* Imports */
 /******************************************************************************/
 
-const chalk = require('chalk');
-const moment = require('moment');
-const { mongoDatabaseName, mongoUri } = require('../settings').shared;
-const { collectorConfigs, pluginConfigs } = require('../settings').inferring;
-const QuantInferrer = require('../lib/QuantInferrer');
 const BullishEngulfingInferrer = require('../lib/plugins/BullishEngulfing/BullishEngulfingInferrer');
+const chalk = require('chalk');
+const RealTimeGDAXCandleCollector = require('../lib/collectors/GDAXCandleCollector/RealTimeGDAXCandleCollector');
+const moment = require('moment');
+const { mongoDatabaseName, mongoUri } = require('../settings');
+const Quant = require('../lib/Quant');
 
 
 /******************************************************************************/
@@ -18,17 +18,33 @@ const formatUSD = (val) => val.toLocaleString('en-US', { style: 'currency', curr
 const formatPercent = (val) => val.toLocaleString('en', { style: 'percent', minimumFractionDigits: 2 });
 const formatTime = (val) => moment(val).format('YYYY-MM-DD HH:mm:ss');
 
+
 /******************************************************************************/
 /* Infer */
 /******************************************************************************/
 
-const inferrer = new QuantInferrer(mongoUri, mongoDatabaseName, collectorConfigs, pluginConfigs);
+const product = 'BTC-USD';
+const candleSize = '1-day';
 
-inferrer.on(QuantInferrer.events.PLUGIN_STARTED, (pluginConfig) => {
-  console.log(chalk.gray(`${ pluginConfig.type } plugin started at ${ formatTime() }`));
+const bullishEngulfingInferrer = new BullishEngulfingInferrer({
+  product,
+  candleSize,
+  dbCollection: 'bullishEngulfing',
+  lookbackCandles: 4,
+  lookaheadCandles: 6,
+  allowedWickToBodyRatio: 0.2,
 });
 
-inferrer.on(BullishEngulfingInferrer.events.CURRENT_CANDLE_IS_BULLISH_ENGULFING, (pluginConfig, candle, probabilities) => {
+const realTimeGDAXCandleCollector = new RealTimeGDAXCandleCollector({
+  product,
+  candleSize,
+  interval: 15 * 60 * 1000, // seconds
+  lookback: 14 * 24 * 60 * 60 * 1000, // seconds
+});
+
+const quant = new Quant(mongoUri, mongoDatabaseName, [bullishEngulfingInferrer], [realTimeGDAXCandleCollector]);
+
+bullishEngulfingInferrer.on(BullishEngulfingInferrer.events.CURRENT_CANDLE_IS_BULLISH_ENGULFING, (pluginConfig, candle, probabilities) => {
   console.log(chalk.green(`CURRENT_CANDLE_IS_BULLISH_ENGULFING at ${ formatTime() }`));
   console.log(chalk.green(`...${ pluginConfig.product }: ${ formatUSD(candle.close) }`));
   probabilities.forEach(({ probability, pctPriceChange }) => {
@@ -38,4 +54,4 @@ inferrer.on(BullishEngulfingInferrer.events.CURRENT_CANDLE_IS_BULLISH_ENGULFING,
   });
 });
 
-inferrer.run();
+quant.start();
